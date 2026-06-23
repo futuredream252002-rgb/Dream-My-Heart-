@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TRX CANDLE ENGINE | PURE CHART WITH BET</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; height: 100vh; width: 100vw; overflow: hidden; color: #e0e0e0; }
+        .dashboard { width: 100%; height: 100%; background: #0a0a0a; display: flex; flex-direction: column; }
+        .chart-fullscreen { flex: 1; display: flex; flex-direction: column; background: #101010; position: relative; min-height: 0; }
+        .chart-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 28px; background: #0d0d0d; border-bottom: 1px solid #222;
+            flex-shrink: 0; flex-wrap: wrap; gap: 12px;
+        }
+        .header-left-zone { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .chart-title { font-size: 1.2rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+        .chart-title i { color: #ffd700; font-size: 1.3rem; }
+        .balance-display {
+            background: #0a0a0a; padding: 6px 18px; border-radius: 40px;
+            border: 1px solid #00bfa5; color: #00e676;
+            font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 10px;
+        }
+        .balance-display i { color: #ffd700; }
+        .balance-amount { font-size: 1.2rem; font-weight: 900; color: #fff; }
+        .color-legend {
+            display: flex; gap: 18px; font-size: 0.75rem; font-weight: 700;
+            background: rgba(0,0,0,0.4); padding: 5px 12px; border-radius: 40px;
+            backdrop-filter: blur(4px);
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-box { width: 14px; height: 14px; border-radius: 3px; }
+        .legend-big { background: #00e676; box-shadow: 0 0 4px #00e676; }
+        .legend-small { background: #ff1744; box-shadow: 0 0 4px #ff1744; }
+        .chart-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; z-index: 15; }
+        .control-btn {
+            background: #1a1a1a; border: 1px solid #333; color: #bbb;
+            padding: 8px 14px; border-radius: 10px; cursor: pointer;
+            font-size: 0.8rem; font-weight: 700; transition: all 0.2s ease;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .control-btn:hover { background: #252525; border-color: #555; color: white; transform: translateY(-1px); }
+        .control-btn.active { background: linear-gradient(145deg, #1565c0, #0d47a1); border-color: #1565c0; color: white; }
+        .info-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 28px; background: #0f0f0f; border-bottom: 1px solid #1a1a1a;
+            flex-shrink: 0; flex-wrap: wrap; gap: 16px; transition: all 0.2s ease;
+        }
+        .period-group {
+            display: flex; gap: 28px; align-items: baseline;
+            background: #0a0a0a; padding: 5px 16px; border-radius: 40px;
+            border: 1px solid #222;
+        }
+        .period-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .period-item-label { font-size: 0.65rem; color: #777; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .period-item-value { font-size: 1.1rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; }
+        .timer-value { font-size: 1.3rem; font-weight: 900; color: #00e676; font-family: 'Courier New', monospace; letter-spacing: 1px; }
+        .timer-value.warning { color: #ffea00; }
+        .timer-value.danger { color: #ff1744; animation: pulse 0.6s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .patterns-badge-container {
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+            background: #0a0a0a; padding: 5px 18px; border-radius: 40px;
+            border: 1px solid #222;
+        }
+        .patterns-label { font-size: 0.7rem; color: #aaa; font-weight: 700; text-transform: uppercase; }
+        .pattern-list { display: flex; gap: 8px; flex-wrap: wrap; }
+        .pattern-badge {
+            display: inline-block; padding: 5px 12px; border-radius: 30px;
+            font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.5px; background: rgba(255,255,255,0.05); border: 1px solid;
+        }
+        .pattern-bullish { background: rgba(0, 230, 118, 0.2); color: #00e676; border-color: rgba(0, 230, 118, 0.5); }
+        .pattern-bearish { background: rgba(255, 23, 68, 0.2); color: #ff1744; border-color: rgba(255, 23, 68, 0.5); }
+        .pattern-neutral { background: rgba(255, 179, 0, 0.15); color: #ffb300; border-color: rgba(255, 179, 0, 0.4); }
+        .live-indicator {
+            display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 600;
+            background: #0a0a0a; padding: 6px 16px; border-radius: 40px; border: 1px solid #2a2a2a;
+        }
+        .live-dot { width: 8px; height: 8px; background: #00e676; border-radius: 50%; animation: blinkLive 1.2s infinite; }
+        @keyframes blinkLive { 0% { opacity: 0.3; transform: scale(0.8);} 100% { opacity: 1; transform: scale(1.2);} }
+        .chart-container { flex: 1; position: relative; overflow: hidden; cursor: grab; background: #0a0a0a; min-height: 0; }
+        .chart-container:active { cursor: grabbing; }
+        #candleChart { width: 100%; height: 100%; display: block; }
+        .chart-overlay-info {
+            position: absolute; background: rgba(8, 8, 12, 0.98); padding: 14px 18px;
+            border-radius: 16px; border: 1px solid #1565c0; font-size: 0.8rem;
+            pointer-events: none; z-index: 200; backdrop-filter: blur(12px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 0 1px rgba(21,101,192,0.3);
+            min-width: 210px; transform: translate(-50%, -120%);
+            transition: opacity 0.1s ease; display: none;
+        }
+        .overlay-header { border-bottom: 1px solid #2a2a2a; padding-bottom: 8px; margin-bottom: 10px; }
+        .overlay-title { font-size: 0.7rem; color: #4fc3f7; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; }
+        .overlay-period { font-size: 0.95rem; font-weight: 900; color: #fff; font-family: monospace; margin-top: 4px; }
+        .overlay-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
+        .overlay-item { background: rgba(255,255,255,0.03); padding: 6px 8px; border-radius: 8px; border: 1px solid #252525; }
+        .overlay-label { font-size: 0.55rem; color: #888; text-transform: uppercase; letter-spacing: 0.6px; }
+        .overlay-value { font-size: 0.85rem; font-weight: 800; color: #fff; font-family: monospace; }
+        .overlay-ta-row { display: flex; justify-content: space-between; margin-top: 10px; background: #111; padding: 6px 8px; border-radius: 8px; }
+        .betting-panel {
+            background: #0d0d0d; border-top: 1px solid #222; padding: 14px 28px;
+            display: flex; gap: 20px; align-items: center; justify-content: center; flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+        .bet-actions { display: flex; gap: 14px; flex: 1; max-width: 600px; }
+        .bet-btn { flex: 1; padding: 16px; border-radius: 14px; border: none; font-size: 1.2rem; font-weight: 900; cursor: pointer; color: #000; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px; }
+        .bet-btn-big { background: linear-gradient(135deg, #00e676, #00bfa5); box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3); }
+        .bet-btn-big:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 230, 118, 0.5); }
+        .bet-btn-small { background: linear-gradient(135deg, #ff1744, #d500f9); color: #fff; box-shadow: 0 4px 15px rgba(255, 23, 68, 0.3); }
+        .bet-btn-small:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 23, 68, 0.5); }
+        .bet-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; box-shadow: none !important; filter: grayscale(1); }
+
+        .bet-modal-overlay {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: rgba(0,0,0,0.7); 
+            backdrop-filter: blur(5px);
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            z-index: 1001; 
+            visibility: hidden; 
+            opacity: 0; 
+            transition: all 0.2s ease;
+        }
+        .bet-modal-overlay.active { 
+            visibility: visible; 
+            opacity: 1; 
+        }
+        .bet-modal {
+    background: #141414; 
+    border-radius: 24px; 
+    padding: 16px;
+    width: 90%; 
+    max-width: 400px;
+    border: 1px solid #333; 
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    transform: scale(0.9); 
+    transition: all 0.2s ease;
+}
+
+        .bet-modal-overlay.active .bet-modal { 
+            transform: scale(1); 
+        }
+        body.rotated-view .bet-modal-overlay {
+          
+            top: 0;
+            left: 0;
+            width: 100vh;
+            height: 100vw;
+            transform: rotate(90deg) translateY(-100%);
+            transform-origin: top left;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        body.rotated-view .bet-modal-overlay .bet-modal {
+            transform: none !important;
+            width: 90%;
+            max-width: 400px;
+        }
+        body.rotated-view .bet-modal-overlay.active .bet-modal {
+            transform: none !important;
+        }
+
+        .modal-header-type {
+    font-size: 1.5rem; font-weight: 900; text-align: center; 
+    margin-bottom: 10px;
+    text-transform: uppercase; letter-spacing: 2px;
+}
+        .modal-header-type.big { color: #ffd700; }
+        .modal-header-type.small { color: #4fc3f7; }
+        .quick-amounts {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; 
+    margin-bottom: 10px;
+}
+        .amount-btn {
+            background: #222; border: 1px solid #444; color: #fff; padding: 10px 5px;
+            font-weight: 700; border-radius: 10px; cursor: pointer; text-align: center; font-size: 0.9rem;
+            transition: all 0.15s;
+        }
+        .amount-btn:hover { background: #333; border-color: #666; }
+        .amount-btn.selected { background: #00bfa5; color: #000; border-color: #00bfa5; font-weight: 800; }
+        .multiplier-zone {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    background: #0a0a0a; padding: 12px 14px; border-radius: 14px; border: 1px solid #222;
+    margin-bottom: 8px; 
+}
+        .mult-label { font-size: 0.8rem; color: #999; font-weight: 600; }
+        .mult-controls { display: flex; align-items: center; gap: 10px; flex: 1; flex-wrap: wrap; }
+        .mult-btn {
+            background: #222; border: none; color: white; width: 32px; height: 32px;
+            border-radius: 50%; font-size: 1.2rem; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .mult-btn:hover { background: #333; }
+        .mult-value {
+            font-family: monospace; font-size: 1.1rem; font-weight: 800;
+            width: 90px; text-align: center; background: #1a1a1a; border: 1px solid #444;
+            border-radius: 8px; padding: 6px 4px; color: #fff; outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .mult-value:focus { border-color: #00bfa5; }
+        .mult-value::placeholder {
+            color: #666;
+            font-weight: 400;
+            font-size: 0.8rem;
+        }
+        .mult-presets {
+            display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px 0;
+            justify-content: center;
+        }
+        .mult-preset {
+            background: #1a1a1a; border: 1px solid #333; color: #ccc;
+            padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700;
+            cursor: pointer; transition: 0.15s;
+        }
+        .mult-preset:hover { background: #2a2a2a; border-color: #555; color: #fff; }
+        .mult-preset.active { background: #00bfa5; color: #000; border-color: #00bfa5; }
+        .total-display-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 4px; border-top: 1px solid #222; 
+    margin-bottom: 12px; 
+}
+        .total-label { font-size: 0.85rem; color: #aaa; font-weight: 600; }
+        .total-val { font-size: 1.3rem; font-weight: 900; color: #ffd700; font-family: monospace; }
+        .modal-actions { display: flex; gap: 12px; }
+        .modal-btn { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.2s; text-transform: uppercase; }
+        .modal-btn-cancel { background: #2c2c2c; color: #fff; }
+        .modal-btn-cancel:hover { background: #3c3c3c; }
+        .modal-btn-confirm { background: #00bfa5; color: #000; }
+        .modal-btn-confirm:hover { background: #00d4b8; }
+        .toast-warning {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 23, 68, 0.9);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            z-index: 2000;
+            display: none;
+            animation: fadeInUp 0.3s ease;
+            box-shadow: 0 10px 40px rgba(255, 23, 68, 0.3);
+            border: 1px solid rgba(255, 23, 68, 0.5);
+            backdrop-filter: blur(10px);
+            text-align: center;
+            max-width: 90%;
+        }
+      
+        body.rotated-view .toast-warning {
+            transform: translateX(-50%) rotate(90deg);
+            transform-origin: center;
+            animation: fadeInUpRotated 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes fadeInUpRotated {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px) rotate(90deg); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0) rotate(90deg); }
+        }
+        #resultPopup {
+            position: fixed;
+            z-index: 1000;
+            display: none;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) !important;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        body.rotated-view #resultPopup {
+            top: 0;
+            left: 0;
+            width: 100vh;
+            height: 100vw;
+            display: none; /* JS will set to flex when showing */
+            align-items: center;
+            justify-content: center;
+            transform: rotate(90deg) translateY(-100%) !important;
+            transform-origin: top left;
+            animation: popInRotated 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popInRotated {
+            0% { opacity: 0; transform: rotate(90deg) translateY(-100%) scale(0.8); }
+            100% { opacity: 1; transform: rotate(90deg) translateY(-100%) scale(1); }
+        }
+
+        body.rotated-view #resultPopup .result-inner {
+            transform: none !important;
+            min-width: 320px;
+        }
+
+        #resultPopup .result-inner {
+            background: linear-gradient(145deg, #1e1e24, #0f0f13);
+            border-radius: 32px; padding: 28px 36px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.05);
+            min-width: 320px; text-align: center;
+            backdrop-filter: blur(20px);
+            transform: none !important;
+        }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.8) rotate(-2deg); } 100% { opacity: 1; transform: scale(1) rotate(0deg); } }
+        #resultPopup .result-header { font-size: 1.0rem; font-weight: 700; color: #aaa; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+        #resultPopup .result-row {
+            display: flex; justify-content: center; align-items: center; gap: 20px;
+            background: rgba(255,255,255,0.03); padding: 12px 20px;
+            border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 12px;
+        }
+        #resultPopup .result-row .label { font-size: 0.85rem; color: #888; font-weight: 600; }
+        #resultPopup .result-row .value { font-size: 1.8rem; font-weight: 900; font-family: 'Courier New', monospace; }
+        #resultPopup .result-row .value.big { color: #00e676; text-shadow: 0 0 20px rgba(0,230,118,0.2); }
+        #resultPopup .result-row .value.small { color: #ff1744; text-shadow: 0 0 20px rgba(255,23,68,0.2); }
+        #resultPopup .result-row .value.number { font-size: 2.2rem; }
+        #resultPopup .result-row .badge {
+            padding: 4px 16px; border-radius: 40px; font-weight: 800; font-size: 0.8rem;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .badge.win { background: rgba(255,215,0,0.15); color: #ffd700; border: 1px solid rgba(255,215,0,0.2); }
+        .badge.lose { background: rgba(255,23,68,0.15); color: #ff1744; border: 1px solid rgba(255,23,68,0.2); }
+        #resultPopup .result-period { font-size: 0.75rem; color: #666; margin-bottom: 12px; }
+        #resultPopup .balance-change { font-size: 1.2rem; font-weight: 800; margin-top: 4px; }
+        #resultPopup .close-btn { 
+            margin-top: 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+            color: #fff; padding: 8px 32px; border-radius: 40px; cursor: pointer;
+            font-weight: 600; transition: 0.2s; backdrop-filter: blur(4px);
+        }
+        #resultPopup .close-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
+        .dashboard.rotated .info-bar {
+            position: absolute; top: 12px; right: 100px;
+            border-bottom: none; background: transparent; padding: 0; z-index: 20; gap: 12px;
+        }
+        .dashboard.rotated .info-bar .period-group { 
+            padding: 4px 12px; gap: 20px; background: rgba(10,10,10,0.85); border-color: #444;
+            border-radius: 40px;
+        }
+        .dashboard.rotated .info-bar .period-item-value { font-size: 1.0rem; }
+        .dashboard.rotated .info-bar .timer-value { font-size: 1.1rem; }
+        .dashboard.rotated .info-bar .patterns-badge-container, 
+        .dashboard.rotated .info-bar .live-indicator { display: none; } 
+        .dashboard.rotated .betting-panel { 
+            padding: 6px 20px; height: 56px; gap: 15px; background: #0a0a0a; border-top: 1px solid #333;
+        }
+        .dashboard.rotated .bet-actions { max-width: 450px; gap: 8px; }
+        .dashboard.rotated .bet-btn { padding: 8px; font-size: 0.95rem; border-radius: 8px; height: 38px; }
+        #rotateViewBtn { display: none; }
+        .dashboard {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vh !important;
+            height: 100vw !important;
+            transform: rotate(90deg) translateY(-100%) !important;
+            transform-origin: top left !important;
+        }
+
+        @media (max-width: 768px) {
+            .chart-header { padding: 10px 16px; }
+            .chart-title { font-size: 0.9rem; }
+            .balance-display { font-size: 0.8rem; padding: 4px 12px; }
+            .balance-amount { font-size: 1rem; }
+            .color-legend { gap: 10px; font-size: 0.65rem; padding: 3px 8px; }
+            .control-btn { padding: 6px 10px; font-size: 0.7rem; }
+            .info-bar { padding: 10px 16px; gap: 12px; }
+            .period-group { gap: 14px; padding: 3px 12px; }
+            .period-item-value { font-size: 0.9rem; }
+            .timer-value { font-size: 1rem; }
+            .patterns-badge-container { padding: 4px 12px; }
+            .pattern-badge { font-size: 0.6rem; padding: 3px 8px; }
+            .live-indicator { padding: 4px 10px; font-size: 0.7rem; }
+            .betting-panel { padding: 10px 16px; }
+            .bet-btn { padding: 12px; font-size: 1rem; }
+            .chart-overlay-info { min-width: 170px; padding: 10px 12px; }
+            #resultPopup .result-inner { min-width: 280px; padding: 20px 24px; }
+            .bet-modal { padding: 18px; }
+            .quick-amounts { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+            .amount-btn { font-size: 0.75rem; padding: 8px 4px; }
+            .mult-value { width: 80px; font-size: 1rem; }
+
+            body.rotated-view .bet-modal-overlay .bet-modal {
+                transform: none !important;
+                width: 90%;
+                max-width: 360px;
+            }
+            body.rotated-view #resultPopup .result-inner {
+                min-width: 260px;
+                padding: 16px 18px;
+                transform: none !important;
+            }
+            body.rotated-view .toast-warning {
+                transform: translateX(-50%) rotate(90deg);
+            }
+        }
+        @media (max-width: 550px) {
+            .period-group { order: 1; }
+            .patterns-badge-container { order: 2; width: 100%; justify-content: space-between; }
+            .live-indicator { order: 3; }
+            .info-bar { flex-direction: column; align-items: stretch; }
+            #resultPopup .result-inner { min-width: 240px; padding: 16px 18px; }
+            #resultPopup .result-row { flex-wrap: wrap; gap: 10px; }
+            .bet-modal { padding: 14px; }
+            .quick-amounts { grid-template-columns: repeat(3, 1fr); }
+            .mult-value { width: 70px; font-size: 0.9rem; }
+
+            body.rotated-view .bet-modal-overlay .bet-modal {
+                transform: none !important;
+                width: 95%;
+                max-width: 320px;
+            }
+            body.rotated-view #resultPopup .result-inner {
+                min-width: 200px;
+                padding: 14px 12px;
+                transform: none !important;
+            }
+            #resultPopup .result-row .value.number { font-size: 1.6rem; }
+            body.rotated-view .toast-warning {
+                transform: translateX(-50%) rotate(90deg);
+                font-size: 0.8rem;
+                padding: 8px 16px;
+            }
+        }
+        canvas { outline: none; }
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 999; flex-direction: column;
+        }
+        .login-card {
+            background: #1a1a1a; padding: 40px 32px; border-radius: 32px;
+            max-width: 420px; width: 90%; border: 1px solid #2a2a2a;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        }
+        .login-card h2 { color: #fff; margin-bottom: 8px; font-weight: 800; font-size: 1.6rem; }
+        .login-card p { color: #888; margin-bottom: 28px; font-size: 0.9rem; }
+        .login-card label { display: block; color: #aaa; font-weight: 600; margin: 16px 0 6px; font-size: 0.8rem; }
+        .login-card input {
+            width: 100%; padding: 14px 16px; background: #0d0d0d; border: 1px solid #333;
+            border-radius: 16px; color: #fff; font-size: 1rem; outline: none;
+        }
+        .login-card input:focus { border-color: #00bfa5; }
+        .platform-selector {
+            display: flex; gap: 10px; margin: 16px 0 8px; flex-wrap: wrap;
+        }
+        .platform-btn {
+            flex: 1; min-width: 80px; padding: 14px 6px;
+            border: 2px solid #333; border-radius: 16px;
+            color: #fff; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+            transition: 0.2s; text-align: center; background: #1a1a1a;
+        }
+        .platform-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
+        .platform-btn.active { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(0,0,0,0.7); }
+        .platform-btn[data-platform="6LOTTERY"] { background: #8b0000; border-color: #cc0000; }
+        .platform-btn[data-platform="6LOTTERY"]:hover, .platform-btn[data-platform="6LOTTERY"].active { background: #cc0000; border-color: #ff3333; box-shadow: 0 0 25px rgba(204,0,0,0.6); }
+        .platform-btn[data-platform="777BIGWIN"] { background: #006400; border-color: #009900; }
+        .platform-btn[data-platform="777BIGWIN"]:hover, .platform-btn[data-platform="777BIGWIN"].active { background: #009900; border-color: #00cc00; box-shadow: 0 0 25px rgba(0,153,0,0.6); }
+        .platform-btn[data-platform="CKLOTTERY"] { background: #000066; border-color: #0000cc; }
+        .platform-btn[data-platform="CKLOTTERY"]:hover, .platform-btn[data-platform="CKLOTTERY"].active { background: #0000cc; border-color: #3333ff; box-shadow: 0 0 25px rgba(0,0,204,0.6); }
+        .login-status { margin-top: 16px; color: #ffb300; font-size: 0.9rem; text-align: center; }
+        .loading-text { color: #00e676; font-size: 0.8rem; margin-top: 8px; text-align: center; }
+        .error-text { color: #ff1744; font-size: 0.85rem; margin-top: 8px; text-align: center; }
+    </style>
+</head>
+<body>
+<div id="loginOverlay">
+    <div class="login-card">
+        <h2>🔐 TRX CANDLE</h2>
+        <p>Enter credentials & click platform to login</p>
+        <div class="platform-selector" id="platformSelector">
+            <button class="platform-btn" data-platform="6LOTTERY">🔥 6LOTTERY</button>
+            <button class="platform-btn active" data-platform="777BIGWIN">💚 777 BIGWIN</button>
+            <button class="platform-btn" data-platform="CKLOTTERY">💙 CK LOTTERY</button>
+        </div>
+        <label>👤 Username (Phone)</label>
+        <input type="text" id="loginUsername" placeholder="Enter your phone number">
+        <label>🔑 Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter your password">
+        <div id="loginStatus" class="login-status"></div>
+        <div id="loadingProgress" class="loading-text" style="display:none;"></div>
+        <div id="loginError" class="error-text"></div>
+    </div>
+</div>
+<div id="toastWarning" class="toast-warning">⚠️ ကျေးဇူးပြု၍ မြှောက်ကိန်း ထည့်ပါ</div>
+<div id="resultPopup">
+    <div class="result-inner">
+        <div class="result-header">🎯 Lottery Results</div>
+        <div id="resultStatus" style="font-size: 1.2rem; font-weight: 900; margin-bottom: 10px;">--</div>
+        <div class="result-row">
+            <span class="label">Lottery results</span>
+            <span class="badge" id="resultColorBadge">--</span>
+            <span class="value number" id="resultNumberDisplay">0</span>
+            <span class="value" id="resultTitle">--</span>
+        </div>
+        <div class="result-period" id="resultPeriod"></div>
+        <div class="balance-change" id="resultBalanceChange"></div>
+        <button class="close-btn" onclick="closeResultPopup()">OK</button>
+    </div>
+</div>
+<div id="betModalOverlay" class="bet-modal-overlay">
+    <div class="bet-modal">
+        <div id="modalHeaderType" class="modal-header-type big">BET BIG</div>
+        <div class="quick-amounts" id="quickAmountsContainer">
+            <button class="amount-btn" data-amount="100">100</button>
+            <button class="amount-btn" data-amount="500">500</button>
+            <button class="amount-btn" data-amount="1000">1K</button>
+            <button class="amount-btn" data-amount="10000">10K</button>
+            <button class="amount-btn" data-amount="100000">100K</button>
+        </div>
+        <div class="multiplier-zone">
+            <span class="mult-label">မြှောက်ကိန်း</span>
+            <div class="mult-controls">
+                <button class="mult-btn" id="multMinus">-</button>
+                <input type="text" id="multValueInput" class="mult-value" placeholder="ထည့်ပါ" inputmode="numeric" pattern="[0-9]*" value="">
+                <button class="mult-btn" id="multPlus">+</button>
+            </div>
+        </div>
+        <div class="mult-presets" id="multPresets">
+            <span class="mult-preset" data-mult="1">1x</span>
+            <span class="mult-preset" data-mult="5">5x</span>
+            <span class="mult-preset" data-mult="10">10x</span>
+            <span class="mult-preset" data-mult="20">20x</span>
+            <span class="mult-preset" data-mult="50">50x</span>
+            <span class="mult-preset" data-mult="100">100x</span>
+        </div>
+        <div class="total-display-row">
+            <span class="total-label">စုစုပေါင်း ပမာဏ:</span>
+            <span class="total-val" id="totalBetDisplay">0 ကျပ်</span>
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn modal-btn-cancel" id="modalCancelBtn">ပယ်ဖျက်</button>
+            <button class="modal-btn modal-btn-confirm" id="modalConfirmBtn">လောင်းမည်</button>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard rotated" id="mainDashboard">
+    <div class="chart-fullscreen">
+        <div class="chart-header">
+            <div class="header-left-zone">
+                <div class="chart-title"><i class="fa-solid fa-chart-simple"></i> TRX</div>
+                <div class="balance-display" id="balanceDisplay" style="display:none;">
+                    <i class="fa-solid fa-wallet"></i>
+                    Balance: <span class="balance-amount" id="balanceAmount">0.00</span> ကျပ်
+                </div>
+                <div class="color-legend">
+                    <div class="legend-item"><div class="legend-box legend-big"></div><span>BIG</span></div>
+                    <div class="legend-item"><div class="legend-box legend-small"></div><span>SMALL</span></div>
+                </div>
+            </div>
+            <div class="chart-controls">
+                <button class="control-btn" id="rotateViewBtn"><i class="fa-solid fa-rotate-right"></i> Rotate</button>
+            </div>
+        </div>
+
+        <div class="info-bar" id="infoBarZone">
+            <div class="period-group">
+                <div class="period-item">
+                    <div class="period-item-label">Next Period</div>
+                    <div class="period-item-value" id="nextPeriodDisplay">--</div>
+                </div>
+                <div class="period-item">
+                    <div class="period-item-label">Countdown</div>
+                    <div class="timer-value" id="countdownTimer">--:--</div>
+                </div>
+            </div>
+            <div class="patterns-badge-container">
+                <span class="patterns-label"><i class="fa-regular fa-chart-scatter"></i> PATTERNS</span>
+                <div class="pattern-list" id="patternListArea">
+                    <span class="pattern-badge pattern-neutral">loading...</span>
+                </div>
+            </div>
+            <div class="live-indicator">
+                <div class="live-dot"></div>
+                <span id="lastUpdateTime">--:--:--</span>
+            </div>
+        </div>
+
+        <div class="chart-container" id="chartContainer">
+            <canvas id="candleChart"></canvas>
+            <div class="chart-overlay-info" id="chartTooltip">
+                <div class="overlay-header">
+                    <div class="overlay-title"><i class="fa-regular fa-calendar"></i> Candle Data</div>
+                    <div class="overlay-period" id="tooltipPeriod">-</div>
+                </div>
+                <div class="overlay-grid">
+                    <div class="overlay-item"><div class="overlay-label">OPEN</div><div class="overlay-value" id="tooltipOpen">-</div></div>
+                    <div class="overlay-item"><div class="overlay-label">HIGH</div><div class="overlay-value" id="tooltipHigh">-</div></div>
+                    <div class="overlay-item"><div class="overlay-label">LOW</div><div class="overlay-value" id="tooltipLow">-</div></div>
+                    <div class="overlay-item"><div class="overlay-label">CLOSE</div><div class="overlay-value" id="tooltipClose">-</div></div>
+                    <div class="overlay-item"><div class="overlay-label">NUMBER</div><div class="overlay-value" id="tooltipNumber">-</div></div>
+                    <div class="overlay-item"><div class="overlay-label">RESULT</div><div class="overlay-value" id="tooltipResult">-</div></div>
+                </div>
+                <div class="overlay-ta-row">
+                    <span style="font-size:0.65rem;">TREND: </span><strong id="tooltipTrend">-</strong>
+                    <span style="font-size:0.65rem;">MOM: </span><strong id="tooltipMomentum">-</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="betting-panel">
+            <div class="bet-actions">
+                <button class="bet-btn bet-btn-big" id="betBigBtn"><i class="fa-solid fa-arrow-trend-up"></i> Bet BIG</button>
+                <button class="bet-btn bet-btn-small" id="betSmallBtn"><i class="fa-solid fa-arrow-trend-down"></i> Bet SMALL</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const PLATFORMS = {
+        "6LOTTERY": "https://6lotteryapi.com/api/webapi/",
+        "777BIGWIN": "https://api.bigwinqaz.com/api/webapi/",
+        "CKLOTTERY": "https://ckygjf6r.com/api/webapi/"
+    };
+    const MAX_CANDLES = 500;
+    const STORAGE_CANDLES = "trx_candle_pure_data";
+    const MYANMAR_OFFSET = 6.5 * 60 * 60 * 1000;
+
+    let authToken = "";
+    let selectedPlatform = "777BIGWIN";
+    let candleData = [];
+    let canvas, ctx;
+    let chartWidth = 0, chartHeight = 0;
+    let scale = 1.0;
+    let offsetX = 40;
+    let isDragging = false;
+    let lastDragX = 0;
+    let showCrosshair = true;
+    let hoveredIndex = -1;
+    let nextPeriodTimestamp = null;
+    let timerInterval = null;
+    let apiInterval = null;
+    let pendingBet = null;
+    let localBalance = 0;
+    let isVerticalView = true; 
+    let bettingLocked = false;
+
+    let currentSelectedType = 13;
+    let currentMultiplier = 0;
+
+    function getMyanmarTime() {
+        const now = new Date();
+        const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+        return new Date(utcTime + MYANMAR_OFFSET);
+    }
+
+    function generateSignature(data) {
+        const exclude = ["signature", "track", "xosoBettingData"];
+        const f = {};
+        Object.keys(data).sort().forEach(k => {
+            const v = data[k];
+            if (v !== null && v !== '' && !exclude.includes(k)) {
+                f[k] = v === 0 ? 0 : v;
+            }
+        });
+        const jstr = JSON.stringify(f);
+        return CryptoJS.MD5(jstr).toString().toUpperCase();
+    }
+    let toastTimeout = null;
+    function showToast(message) {
+        const toast = document.getElementById('toastWarning');
+        toast.textContent = message || '⚠️ ကျေးဇူးပြု၍ မြှောက်ကိန်း ထည့်ပါ';
+        toast.style.display = 'block';
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+            toast.style.display = 'none';
+        }, 2500);
+    }
+
+    function hideToast() {
+        if (toastTimeout) clearTimeout(toastTimeout);
+        document.getElementById('toastWarning').style.display = 'none';
+    }
+    async function performLogin(username, password) {
+        const statusEl = document.getElementById('loginStatus');
+        const progressEl = document.getElementById('loadingProgress');
+        const errorEl = document.getElementById('loginError');
+        statusEl.innerText = '⏳ Logging in...';
+        progressEl.style.display = 'none';
+        errorEl.innerText = '';
+
+        const baseUrl = PLATFORMS[selectedPlatform];
+        if (!baseUrl) {
+            statusEl.innerText = '⚠️ Invalid platform selected.';
+            return false;
+        }
+
+        try {
+            const loginPayload = {
+                username: username,
+                pwd: password,
+                phonetype: 1,
+                logintype: "mobile",
+                packId: "",
+                deviceId: "5dcab3e06db88a206975e91ea6ac7c87",
+                language: 7,
+                random: CryptoJS.lib.WordArray.random(16).toString(CryptoJS.enc.Hex)
+            };
+            const signature = generateSignature(loginPayload);
+            loginPayload.signature = signature;
+            loginPayload.timestamp = Math.floor(Date.now() / 1000);
+
+            const res = await fetch(baseUrl + "Login", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=UTF-8',
+                    'Accept': 'application/json',
+                    'Ar-Origin': 'https://www.bigwingame.cc',
+                    'Origin': 'https://www.bigwingame.cc',
+                    'Referer': 'https://www.bigwingame.cc/',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0'
+                },
+                body: JSON.stringify(loginPayload)
+            });
+
+            const data = await res.json();
+            if (data.code !== 0) {
+                statusEl.innerText = '❌ Login failed: ' + (data.msg || 'unknown');
+                errorEl.innerText = 'Please check credentials.';
+                return false;
+            }
+
+            authToken = data.data.token;
+            statusEl.innerText = '✅ Login success. Fetching balance & history...';
+
+            await refreshBalance();
+            progressEl.style.display = 'block';
+            await fetchAllTRXHistory(progressEl, statusEl);
+
+            document.getElementById('loginOverlay').style.display = 'none';
+            loadLocalData();
+            startChartLoop();
+            return true;
+        } catch (e) {
+            statusEl.innerText = '⚠️ Network error: ' + e.message;
+            errorEl.innerText = 'Check internet connection.';
+            console.error(e);
+            return false;
+        }
+    }
+
+    async function refreshBalance() {
+        if (!authToken) return;
+        const baseUrl = PLATFORMS[selectedPlatform];
+        if (!baseUrl) return;
+        try {
+            const authHeaders = {
+                'Content-Type': 'application/json;charset=UTF-8',
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${authToken}`,
+                'Ar-Origin': 'https://www.bigwingame.cc'
+            };
+            const balRes = await fetch(baseUrl + "GetBalance", {
+                method: 'POST',
+                headers: authHeaders,
+                body: JSON.stringify({ language: 7, random: "2bd6857049ee4aab854ebd14b0329913", signature: "66D8663148FC013C20F2DD8CF2ED2FE6", timestamp: 1781942853 })
+            });
+            const balData = await balRes.json();
+            if (balData.code === 0) {
+                localBalance = parseFloat(balData.data.amount) || 0;
+                document.getElementById('balanceAmount').innerText = localBalance.toFixed(2);
+                document.getElementById('balanceDisplay').style.display = 'flex';
+            }
+        } catch (e) { console.warn("Failed to refresh balance:", e); }
+    }
+
+    async function fetchAllTRXHistory(progressEl, statusEl) {
+        const baseUrl = PLATFORMS[selectedPlatform];
+        if (!baseUrl || !authToken) return;
+        try {
+            const authHeaders = {
+                'Content-Type': 'application/json;charset=UTF-8',
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${authToken}`,
+                'Ar-Origin': 'https://www.bigwingame.cc'
+            };
+            let allGames = [];
+            statusEl.innerText = `📥 Loading history candles...`;
+
+            for (let page = 1; page <= 40; page++) {
+                const payload = {
+                    pageSize: 10,
+                    pageNo: page,
+                    typeId: 13,
+                    language: 7,
+                    random: CryptoJS.lib.WordArray.random(16).toString(CryptoJS.enc.Hex)
+                };
+                payload.signature = generateSignature(payload);
+                payload.timestamp = Math.floor(Date.now() / 1000);
+
+                progressEl.innerText = `Fetching page ${page}/40... (${allGames.length} items loaded)`;
+
+                const res = await fetch(baseUrl + "GetTRXNoaverageEmerdList", {
+                    method: 'POST',
+                    headers: authHeaders,
+                    body: JSON.stringify(payload)
+                });
+                const json = await res.json();
+
+                if (json.code === 0 && json.data?.data?.gameslist && json.data.data.gameslist.length > 0) {
+                    allGames = [...allGames, ...json.data.data.gameslist];
+                } else {
+                    break;
+                }
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+
+            if (allGames.length > 0) {
+                allGames.sort((a, b) => a.issueNumber.localeCompare(b.issueNumber));
+                let newCandles = [];
+                let prevClose = 52.0;
+                for (let game of allGames) {
+                    const period = game.issueNumber;
+                    const number = parseInt(game.number);
+                    const result = number >= 5 ? 'BIG' : 'SMALL';
+                    const base = prevClose;
+                    const isBig = number >= 5;
+                    let open = base;
+                    let close = isBig ? open + 0.85 : open - 0.85;
+                    let wick = 0.12 + Math.random() * 0.2;
+                    let high = Math.max(open, close) + wick;
+                    let low = Math.min(open, close) - wick;
+                    prevClose = close;
+                    newCandles.push({ period, number, result, open, high, low, close, timestamp: Date.now() });
+                }
+                if (newCandles.length) {
+                    candleData = newCandles.slice(-MAX_CANDLES);
+                    localStorage.setItem(STORAGE_CANDLES, JSON.stringify(candleData));
+                    updatePatternsBar();
+                    drawChart();
+                    scrollToNewest();
+                }
+            }
+            progressEl.style.display = 'none';
+            statusEl.innerText = `✅ Loaded ${candleData.length} candles`;
+        } catch (e) {
+            console.warn('History fetch error:', e);
+            statusEl.innerText = '⚠️ History data loading error';
+        }
+    }
+
+    async function fetchTRXData() {
+        if (!authToken) return;
+        const baseUrl = PLATFORMS[selectedPlatform];
+        if (!baseUrl) return;
+        try {
+            const authHeaders = {
+                'Content-Type': 'application/json;charset=UTF-8',
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${authToken}`,
+                'Ar-Origin': 'https://www.bigwingame.cc'
+            };
+            const payload = {
+                pageSize: 10,
+                pageNo: 1,
+                typeId: 13,
+                language: 7,
+                random: CryptoJS.lib.WordArray.random(16).toString(CryptoJS.enc.Hex)
+            };
+            payload.signature = generateSignature(payload);
+            payload.timestamp = Math.floor(Date.now() / 1000);
+
+            const res = await fetch(baseUrl + "GetTRXNoaverageEmerdList", {
+                method: 'POST',
+                headers: authHeaders,
+                body: JSON.stringify(payload)
+            });
+            const json = await res.json();
+
+            if (json.code === 0 && json.data?.data?.gameslist && json.data.data.gameslist.length > 0) {
+                const games = json.data.data.gameslist;
+                games.sort((a, b) => a.issueNumber.localeCompare(b.issueNumber));
+
+                let updated = false;
+                let balanceBefore = localBalance;
+                let prevClose = candleData.length > 0 ? candleData[candleData.length - 1].close : 52.0;
+
+                for (let game of games) {
+                    const period = game.issueNumber;
+                    const number = parseInt(game.number);
+                    const result = number >= 5 ? 'BIG' : 'SMALL';
+
+                    const exists = candleData.some(c => c.period === period);
+
+                    if (!exists) {
+                        if (pendingBet && pendingBet.period === period) {
+                            const betType = pendingBet.type;
+                            const totalBetAmount = pendingBet.amount;
+                            const isWin = (result === betType);
+                            const winAmount = isWin ? (totalBetAmount * 1.96) : -totalBetAmount;
+                            const balanceAfter = balanceBefore + winAmount;
+                            showResultPopup(period, number, result, betType, totalBetAmount, balanceBefore, balanceAfter);
+                            localBalance = balanceAfter;
+                            document.getElementById('balanceAmount').innerText = localBalance.toFixed(2);
+                            pendingBet = null;
+                        }
+
+                        const base = prevClose;
+                        const isBig = number >= 5;
+                        let open = base;
+                        let close = isBig ? open + 0.85 : open - 0.85;
+                        let wick = 0.12 + Math.random() * 0.2;
+                        let high = Math.max(open, close) + wick;
+                        let low = Math.min(open, close) - wick;
+                        prevClose = close;
+
+                        candleData.push({ period, number, result, open, high, low, close, timestamp: Date.now() });
+                        updated = true;
+                    } else {
+                        const lastCandle = candleData[candleData.length - 1];
+                        if (lastCandle && lastCandle.period === period) {
+                            prevClose = lastCandle.close;
+                        }
+                    }
+                }
+
+                if (updated) {
+                    if (candleData.length > MAX_CANDLES) candleData = candleData.slice(-MAX_CANDLES);
+                    localStorage.setItem(STORAGE_CANDLES, JSON.stringify(candleData));
+                    document.getElementById('lastUpdateTime').innerText = new Date().toLocaleTimeString();
+                    updatePatternsBar();
+                    scrollToNewest();
+                    drawChart();
+                    await refreshBalance();
+                }
+
+                const latestGame = games[games.length - 1];
+                if (latestGame) {
+                    const nextPeriod = (BigInt(latestGame.issueNumber) + 1n).toString();
+                    document.getElementById('nextPeriodDisplay').innerText = nextPeriod;
+
+                    const myanmarTime = getMyanmarTime();
+                    const currentMinute = myanmarTime.getMinutes();
+                    const nextMinute = currentMinute + 1;
+                    const nextTimestamp = new Date(myanmarTime);
+                    nextTimestamp.setSeconds(0);
+                    nextTimestamp.setMilliseconds(0);
+                    nextTimestamp.setMinutes(nextMinute);
+                    nextPeriodTimestamp = nextTimestamp.getTime();
+                }
+            }
+        } catch (e) {
+            console.warn('Fetch TRX data error:', e);
+        }
+    }
+
+    function updateTimer() {
+        if (!nextPeriodTimestamp) return;
+        const myanmarTime = getMyanmarTime();
+        let remain = Math.max(0, nextPeriodTimestamp - myanmarTime.getTime());
+
+        let mins = Math.floor(remain / 60000);
+        let secs = Math.floor((remain % 60000) / 1000);
+        const timerEl = document.getElementById('countdownTimer');
+
+        if (timerEl) {
+            timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            timerEl.classList.remove('warning', 'danger');
+            if (remain <= 10000) timerEl.classList.add('danger');
+            else if (remain <= 30000) timerEl.classList.add('warning');
+        }
+
+        if (secs <= 11 && mins === 0) {
+            if (!bettingLocked) {
+                bettingLocked = true;
+                document.getElementById('betBigBtn').disabled = true;
+                document.getElementById('betSmallBtn').disabled = true;
+                closeBetModal();
+            }
+        } else {
+            if (bettingLocked) {
+                bettingLocked = false;
+                document.getElementById('betBigBtn').disabled = false;
+                document.getElementById('betSmallBtn').disabled = false;
+            }
+        }
+
+        if (remain <= 500) fetchTRXData();
+    }
+    function openBetModal(selectType) {
+        if (bettingLocked) return;
+        currentSelectedType = selectType;
+        const modalOverlay = document.getElementById('betModalOverlay');
+        const headerTitle = document.getElementById('modalHeaderType');
+        if (selectType === 13) {
+            headerTitle.innerText = "BET BIG";
+            headerTitle.className = "modal-header-type big";
+        } else {
+            headerTitle.innerText = "BET SMALL";
+            headerTitle.className = "modal-header-type small";
+        }
+        document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+        const defaultBtn = document.querySelector('.amount-btn[data-amount="100"]');
+        if (defaultBtn) defaultBtn.classList.add('selected');
+        
+        document.getElementById('multValueInput').value = '1';
+        currentMultiplier = 1;
+        document.querySelectorAll('.mult-preset').forEach(p => p.classList.remove('active'));
+        const preset1 = document.querySelector('.mult-preset[data-mult="1"]');
+        if (preset1) preset1.classList.add('active');
+        updateTotalBetDisplay();
+        modalOverlay.classList.add('active');
+        hideToast();
+        document.getElementById('multValueInput').blur();
+    }
+
+    function closeBetModal() {
+        document.getElementById('multValueInput').blur();
+        document.getElementById('betModalOverlay').classList.remove('active');
+        hideToast();
+    }
+
+    function updateTotalBetDisplay() {
+        const multInput = document.getElementById('multValueInput');
+        let val = parseInt(multInput.value);
+        if (isNaN(val) || val < 1) {
+            currentMultiplier = 0;
+            document.getElementById('totalBetDisplay').innerText = '0 ကျပ်';
+            return;
+        }
+        currentMultiplier = val;
+
+        const selected = document.querySelector('.amount-btn.selected');
+        let baseAmount = 100;
+        if (selected) {
+            baseAmount = parseInt(selected.dataset.amount);
+        }
+        const total = baseAmount * currentMultiplier;
+        document.getElementById('totalBetDisplay').innerText = `${total.toLocaleString()} ကျပ်`;
+        
+        document.querySelectorAll('.mult-preset').forEach(p => p.classList.remove('active'));
+        const match = document.querySelector(`.mult-preset[data-mult="${val}"]`);
+        if (match) match.classList.add('active');
+    }
+
+    async function confirmAndExecuteBet() {
+        const nextPeriod = document.getElementById('nextPeriodDisplay').innerText;
+
+        if (!authToken) { alert("⚠️ Token မရှိပါ။ ကျေးဇူးပြု၍ အကောင့်ပြန်ဝင်ပါ။"); return; }
+        if (nextPeriod === "--") { alert("⚠️ Period Number မရရှိသေးပါ။"); return; }
+
+        const multInput = document.getElementById('multValueInput');
+        const inputValue = multInput.value.trim();
+        
+        if (inputValue === '') {
+            showToast('⚠️ ကျေးဇူးပြု၍ မြှောက်ကိန်း ထည့်ပါ');
+            multInput.focus();
+            return;
+        }
+        
+        let multiplier = parseInt(inputValue);
+        if (isNaN(multiplier) || multiplier < 1) {
+            showToast('⚠️ ကျေးဇူးပြု၍ မှန်ကန်သော ဂဏန်း ထည့်ပါ');
+            multInput.focus();
+            return;
+        }
+        currentMultiplier = multiplier;
+
+        const selected = document.querySelector('.amount-btn.selected');
+        let baseAmount = 100;
+        if (selected) {
+            baseAmount = parseInt(selected.dataset.amount);
+        }
+        const totalAmount = baseAmount * multiplier;
+
+        if (totalAmount > localBalance) {
+            showToast(`⚠️ Balance မလောက်ပါ။ လက်ကျန်: ${localBalance.toFixed(2)} ကျပ်`);
+            return;
+        }
+
+        closeBetModal();
+        hideToast();
+
+        if (pendingBet && pendingBet.period === nextPeriod) {
+            pendingBet.amount += totalAmount;
+            pendingBet.count = (pendingBet.count || 1) + 1;
+        } else {
+            pendingBet = {
+                type: currentSelectedType === 13 ? 'BIG' : 'SMALL',
+                amount: totalAmount,
+                period: nextPeriod,
+                count: 1
+            };
+        }
+
+        const baseUrl = PLATFORMS[selectedPlatform];
+        if (!baseUrl) { alert("Platform not selected"); return; }
+
+        try {
+            const payload = {
+                typeId: 13,
+                issuenumber: nextPeriod,
+                language: 7,
+                gameType: 2,
+                amount: baseAmount,
+                betCount: multiplier,
+                selectType: currentSelectedType,
+                random: CryptoJS.lib.WordArray.random(16).toString(CryptoJS.enc.Hex)
+            };
+            const signature = generateSignature(payload);
+            payload.signature = signature;
+            payload.timestamp = Math.floor(Date.now() / 1000);
+
+            const res = await fetch(baseUrl + "GameTrxBetting", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=UTF-8',
+                    'Accept': 'application/json, text/plain, */*',
+                    'Authorization': `Bearer ${authToken}`,
+                    'Ar-Origin': 'https://www.bigwingame.cc',
+                    'Origin': 'https://www.bigwingame.cc',
+                    'Referer': 'https://www.bigwingame.cc/',
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (data.code === 0) {
+                localBalance -= totalAmount;
+                document.getElementById('balanceAmount').innerText = localBalance.toFixed(2);
+                alert(`✅ Bet Placed Successfully!\nType: ${currentSelectedType === 13 ? 'BIG' : 'SMALL'}\nPeriod: ${nextPeriod}\nAmount: ${baseAmount} × ${multiplier} = ${totalAmount} ကျပ်`);
+                await refreshBalance();
+            } else {
+                alert(`❌ Bet Failed: ${data.msg || 'Unknown Error'}`);
+                if (pendingBet && pendingBet.period === nextPeriod) {
+                    pendingBet.amount -= totalAmount;
+                    if (pendingBet.amount <= 0 || pendingBet.count <= 1) pendingBet = null;
+                    else pendingBet.count -= 1;
+                }
+            }
+        } catch (e) {
+            alert(`⚠️ Error: ${e.message}`);
+            console.error(e);
+        }
+    }
+    function showResultPopup(period, number, result, betType, totalBetAmount, balanceBefore, balanceAfter) {
+        const popup = document.getElementById('resultPopup');
+        const resultStatus = document.getElementById('resultStatus');
+        const numDisplay = document.getElementById('resultNumberDisplay');
+        const colorBadge = document.getElementById('resultColorBadge');
+        const title = document.getElementById('resultTitle');
+        const periodEl = document.getElementById('resultPeriod');
+        const balanceChange = document.getElementById('resultBalanceChange');
+
+        const isWin = (result === betType);
+        if (isWin) {
+            resultStatus.innerText = "✅ အနိုင်ရရှိပါသည်";
+            resultStatus.style.color = "#00e676";
+        } else {
+            resultStatus.innerText = "❌ အရှုံးပေါ်ပါသည်";
+            resultStatus.style.color = "#ff1744";
+        }
+
+        let colorName = "";
+        let colorStyle = "";
+        if ([1, 3, 7, 9].includes(number)) {
+            colorName = "GREEN"; colorStyle = "background: #00e676; color: #fff;";
+        } else if ([2, 4, 6, 8].includes(number)) {
+            colorName = "RED"; colorStyle = "background: #ff1744; color: #fff;";
+        } else if (number === 5) {
+            colorName = "VIOLET/GREEN"; colorStyle = "background: linear-gradient(90deg, #d500f9 50%, #00e676 50%); color: #fff;";
+        } else if (number === 0) {
+            colorName = "RED/VIOLET"; colorStyle = "background: linear-gradient(90deg, #ff1744 50%, #d500f9 50%); color: #fff;";
+        }
+
+        numDisplay.innerText = number;
+        colorBadge.innerText = colorName;
+        colorBadge.setAttribute("style", colorStyle);
+        title.innerText = result;
+        periodEl.innerText = `Period: ${period}`;
+        const winAmount = isWin ? (totalBetAmount * 1.96) : -totalBetAmount;
+        balanceChange.innerText = `${isWin ? '+' : ''}${winAmount.toFixed(2)} ကျပ်`;
+        balanceChange.style.color = isWin ? '#ffd700' : '#ff1744';
+        
+        const rotatedView = document.body.classList.contains('rotated-view');
+        popup.style.display = rotatedView ? 'flex' : 'block';
+    }
+
+    function closeResultPopup() {
+        document.getElementById('resultPopup').style.display = 'none';
+    }
+    function detectPatternsForIndex(idx) {
+        if (idx < 2 || idx >= candleData.length) return [];
+        const c = candleData[idx]; const c1 = candleData[idx - 1]; const c2 = candleData[idx - 2];
+        let patterns = [];
+        if (c1.result === 'SMALL' && c.result === 'BIG' && c.close > c1.open && c.open < c1.close) patterns.push({ name: 'Bull Engulf', type: 'bullish' });
+        if (c1.result === 'BIG' && c.result === 'SMALL' && c.close < c1.open && c.open > c1.close) patterns.push({ name: 'Bear Engulf', type: 'bearish' });
+        const body = Math.abs(c.close - c.open); const lowerShadow = Math.min(c.open, c.close) - c.low; const upperShadow = c.high - Math.max(c.open, c.close);
+        if (c.result === 'SMALL' && lowerShadow > body * 2 && upperShadow < body * 0.4) patterns.push({ name: 'Hammer', type: 'bullish' });
+        if (c.result === 'BIG' && upperShadow > body * 2 && lowerShadow < body * 0.4) patterns.push({ name: 'Shooting Star', type: 'bearish' });
+        if (Math.abs(c.close - c.open) < (c.high - c.low) * 0.15) patterns.push({ name: 'Doji', type: 'neutral' });
+        return patterns.slice(0, 4);
+    }
+    function updatePatternsBar() {
+        if (!candleData.length) return;
+        const patterns = detectPatternsForIndex(candleData.length - 1);
+        const container = document.getElementById('patternListArea');
+        if (!container) return;
+        if (patterns.length === 0) { container.innerHTML = '<span class="pattern-badge pattern-neutral">No Pattern</span>'; }
+        else {
+            let html = '';
+            patterns.forEach(p => {
+                let cls = p.type === 'bullish' ? 'pattern-bullish' : (p.type === 'bearish' ? 'pattern-bearish' : 'pattern-neutral');
+                html += `<span class="pattern-badge ${cls}">${p.name}</span>`;
+            });
+            container.innerHTML = html;
+        }
+    }
+    function getTrendAndMomentum(idx) {
+        if (idx < 2 || candleData.length < 5) return { trend: 'Neutral', momentum: 'Neutral' };
+        const recent = candleData.slice(Math.max(0, idx - 4), idx + 1);
+        let upCount = recent.filter(c => c.result === 'BIG').length;
+        let downCount = recent.filter(c => c.result === 'SMALL').length;
+        let trend = upCount > downCount + 1 ? 'Bullish' : (downCount > upCount + 1 ? 'Bearish' : 'Neutral');
+        let momentum = trend === 'Bullish' ? 'Up' : (trend === 'Bearish' ? 'Down' : 'Sideways');
+        return { trend, momentum };
+    }
+    function getCandleWidth() {
+        let base = 12 * scale;
+        if (isVerticalView) base = base * 0.65;
+        return base;
+    }
+    function drawChart() {
+        if (!ctx || chartWidth === 0 || chartHeight === 0) return;
+        ctx.clearRect(0, 0, chartWidth, chartHeight);
+        ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, chartWidth, chartHeight);
+
+        if (candleData.length === 0) {
+            ctx.fillStyle = '#666'; ctx.font = '14px Inter'; ctx.textAlign = 'center';
+            ctx.fillText('No TRX data yet. Login to load history.', chartWidth / 2, chartHeight / 2);
+            return;
+        }
+        let minPrice = Infinity, maxPrice = -Infinity;
+        for (let c of candleData) {
+            if (c.high > maxPrice) maxPrice = c.high;
+            if (c.low < minPrice) minPrice = c.low;
+        }
+
+        const paddingMultiplier = isVerticalView ? 0.01 : 0.05;
+        const padding = (maxPrice - minPrice) * paddingMultiplier || 1;
+        minPrice -= padding; maxPrice += padding;
+        const priceRange = maxPrice - minPrice;
+        const yBase = 25; const graphHeight = chartHeight - 35;
+        const priceToY = (price) => yBase + graphHeight - ((price - minPrice) / priceRange) * graphHeight;
+        const candleW = getCandleWidth();
+        const totalStep = candleW + (candleW * 0.35);
+        ctx.strokeStyle = '#1f1f1f'; ctx.lineWidth = 1;
+        for (let i = 0; i <= 5; i++) {
+            let y = yBase + (i * graphHeight / 5);
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(chartWidth, y); ctx.stroke();
+            let price = maxPrice - (i * priceRange / 5);
+            ctx.fillStyle = '#777'; ctx.font = '10px Inter'; ctx.textAlign = 'left';
+            ctx.fillText(price.toFixed(2), 6, y - 2);
+        }
+
+        if (candleData.length >= 5) {
+            ctx.beginPath(); ctx.strokeStyle = '#ffd966'; ctx.lineWidth = 1.8; ctx.setLineDash([5, 4]);
+            let first = true;
+            for (let i = 4; i < candleData.length; i++) {
+                let sum = 0;
+                for (let j = 0; j < 5; j++) sum += candleData[i - j].close;
+                let x = offsetX + (i * totalStep) + (candleW / 2);
+                let y = priceToY(sum / 5);
+                if (first) { ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y);
+            }
+            ctx.stroke(); ctx.setLineDash([]);
+        }
+
+        for (let i = 0; i < candleData.length; i++) {
+            const c = candleData[i]; const x = offsetX + (i * totalStep) + (candleW / 2);
+            if (x + candleW / 2 < 0 || x - candleW / 2 > chartWidth) continue;
+
+            const color = c.result === 'BIG' ? '#00e676' : '#ff1744';
+            ctx.beginPath(); ctx.moveTo(x, priceToY(c.high)); ctx.lineTo(x, priceToY(c.low));
+            ctx.strokeStyle = color; ctx.lineWidth = Math.max(1.5, 1.5 * scale); ctx.stroke();
+
+            const openY = priceToY(c.open); const closeY = priceToY(c.close);
+            ctx.fillStyle = color; ctx.fillRect(x - candleW / 2, Math.min(openY, closeY), candleW, Math.max(1, Math.abs(closeY - openY)));
+
+            ctx.font = `bold ${Math.max(9, Math.min(12, candleW * 0.7))}px "Courier New"`;
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.fillText(c.number.toString(), x, priceToY(c.low) - 6);
+
+            if (i === hoveredIndex && showCrosshair) {
+                ctx.strokeStyle = 'white'; ctx.lineWidth = 1.5;
+                ctx.strokeRect(x - candleW / 2 - 2, Math.min(openY, closeY) - 2, candleW + 4, Math.abs(closeY - openY) + 4);
+            }
+        }
+    }
+    function resizeCanvasAndDraw() {
+        const container = document.getElementById('chartContainer');
+        if (!container) return;
+
+        const rect = container.getBoundingClientRect();
+        if (isVerticalView) {
+            chartWidth = rect.height;
+            chartHeight = rect.width;
+        } else {
+            chartWidth = rect.width;
+            chartHeight = rect.height;
+        }
+        canvas.width = chartWidth;
+        canvas.height = chartHeight;
+        ctx = canvas.getContext('2d');
+        drawChart();
+    }
+    function scrollToNewest() {
+        if (!candleData.length) { offsetX = 40; drawChart(); return; }
+        const candleW = getCandleWidth(); const totalStep = candleW + (candleW * 0.35);
+        offsetX = chartWidth - (candleData.length * totalStep) - 40;
+        if (offsetX > 40) offsetX = 40;
+        drawChart();
+    }
+    function loadLocalData() {
+        const stored = localStorage.getItem(STORAGE_CANDLES);
+        if (stored) {
+            try {
+                candleData = JSON.parse(stored);
+                updatePatternsBar();
+                drawChart();
+                scrollToNewest();
+            } catch (e) { }
+        }
+    }
+    function setupInteractions() {
+        canvas.addEventListener('mousemove', (e) => {
+            if (!showCrosshair) return;
+            const rect = canvas.getBoundingClientRect();
+
+            let mouseX, mouseY;
+            if (isVerticalView) {
+                mouseX = e.clientY - rect.top;
+                mouseY = chartHeight - (e.clientX - rect.left);
+            } else {
+                mouseX = e.clientX - rect.left;
+                mouseY = e.clientY - rect.top;
+            }
+            const candleW = getCandleWidth(); const totalStep = candleW + (candleW * 0.35);
+            let idx = Math.round(((mouseX - offsetX) - candleW / 2) / totalStep);
+            if (idx >= 0 && idx < candleData.length) {
+                hoveredIndex = idx;
+                showTooltip(mouseX, mouseY, candleData[idx]);
+            } else { hoveredIndex = -1; document.getElementById('chartTooltip').style.display = 'none'; drawChart(); }
+            drawChart();
+        });
+
+        canvas.addEventListener('mouseleave', () => { hoveredIndex = -1; document.getElementById('chartTooltip').style.display = 'none'; drawChart(); });
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            lastDragX = isVerticalView ? e.clientY : e.clientX;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const currentX = isVerticalView ? e.clientY : e.clientX;
+                offsetX += (currentX - lastDragX);
+                lastDragX = currentX;
+                drawChart();
+            }
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; canvas.style.cursor = 'grab'; });
+
+        canvas.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            const touch = e.touches[0];
+            lastDragX = isVerticalView ? touch.clientY : touch.clientX;
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            const currentX = isVerticalView ? touch.clientY : touch.clientX;
+            offsetX += (currentX - lastDragX);
+            lastDragX = currentX;
+            drawChart();
+        });
+        canvas.addEventListener('touchend', () => { isDragging = false; });
+
+        document.getElementById('betBigBtn').onclick = () => openBetModal(13);
+        document.getElementById('betSmallBtn').onclick = () => openBetModal(14);
+
+        const amountBtns = document.querySelectorAll('.amount-btn');
+        amountBtns.forEach(btn => {
+            btn.onclick = (e) => {
+                amountBtns.forEach(b => b.classList.remove('selected'));
+                e.target.classList.add('selected');
+                updateTotalBetDisplay();
+            };
+        });
+        const multInput = document.getElementById('multValueInput');
+        multInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value === '') {
+                currentMultiplier = 0;
+                document.getElementById('totalBetDisplay').innerText = '0 ကျပ်';
+                document.querySelectorAll('.mult-preset').forEach(p => p.classList.remove('active'));
+                return;
+            }
+            let val = parseInt(this.value);
+            if (!isNaN(val) && val >= 1) {
+                document.querySelectorAll('.mult-preset').forEach(p => p.classList.remove('active'));
+                const match = document.querySelector(`.mult-preset[data-mult="${val}"]`);
+                if (match) match.classList.add('active');
+                updateTotalBetDisplay();
+            }
+        });
+        document.getElementById('multMinus').onclick = () => {
+            const multInput = document.getElementById('multValueInput');
+            let val = parseInt(multInput.value);
+            if (isNaN(val) || val <= 1) {
+                multInput.value = '';
+                currentMultiplier = 0;
+                document.getElementById('totalBetDisplay').innerText = '0 ကျပ်';
+                document.querySelectorAll('.mult-preset').forEach(p => p.classList.remove('active'));
+            } else {
+                val--;
+                multInput.value = val.toString();
+                document.querySelectorAll('.mult-preset').forEach(p => p.classList.remove('active'));
+                const match = document.querySelector(`.mult-preset[data-mult="${val}"]`);
+                if (match) match.classList.add('active');
+                updateTotalBetDisplay();
+            }
+            multInput.focus();
+        };
+        document.getElementById('multPlus').onclick = () => {
+            const multInput = document.getElementById('multValueInput');
+            let val = parseInt(multInput.value);
+            if (isNaN(val) || val < 1) {
+                val = 1;
+            } else {
+                val++;
+            }
+            multInput.value = val.toString();
+            document.querySelectorAll('.mult-preset').forEach(p => p.classList.remove('active'));
+            const match = document.querySelector(`.mult-preset[data-mult="${val}"]`);
+            if (match) match.classList.add('active');
+            updateTotalBetDisplay();
+        };
+        document.querySelectorAll('.mult-preset').forEach(preset => {
+            preset.onclick = function() {
+                const val = parseInt(this.dataset.mult);
+                document.getElementById('multValueInput').value = val.toString();
+                document.querySelectorAll('.mult-preset').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                updateTotalBetDisplay();
+            };
+        });
+        document.getElementById('modalCancelBtn').onclick = () => closeBetModal();
+        document.getElementById('modalConfirmBtn').onclick = () => confirmAndExecuteBet();
+    }
+    function showTooltip(x, y, candle) {
+        const tooltip = document.getElementById('chartTooltip');
+        let left = x + 15; let top = y - 80;
+        if (left > chartWidth - 200) left = x - 210;
+        if (top < 30) top = y + 20;
+        if (isVerticalView) {
+            tooltip.style.left = (y + 15) + 'px';
+            tooltip.style.top = (chartWidth - x - 80) + 'px';
+        } else {
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+        tooltip.style.display = 'block';
+        document.getElementById('tooltipPeriod').innerText = candle.period;
+        document.getElementById('tooltipOpen').innerText = candle.open.toFixed(3);
+        document.getElementById('tooltipHigh').innerText = candle.high.toFixed(3);
+        document.getElementById('tooltipLow').innerText = candle.low.toFixed(3);
+        document.getElementById('tooltipClose').innerText = candle.close.toFixed(3);
+        document.getElementById('tooltipNumber').innerText = candle.number;
+        let rS = document.getElementById('tooltipResult'); rS.innerText = candle.result;
+        rS.style.color = candle.result === 'BIG' ? '#00e676' : '#ff1744';
+        const idx = candleData.findIndex(c => c.period === candle.period);
+        const ta = idx !== -1 ? getTrendAndMomentum(idx) : { trend: '--', momentum: '--' };
+        document.getElementById('tooltipTrend').innerText = ta.trend;
+        document.getElementById('tooltipMomentum').innerText = ta.momentum;
+    }
+    function startChartLoop() {
+        if (apiInterval) clearInterval(apiInterval);
+        if (timerInterval) clearInterval(timerInterval);
+        apiInterval = setInterval(fetchTRXData, 2000);
+        timerInterval = setInterval(updateTimer, 1000);
+        fetchTRXData();
+    }
+    document.querySelectorAll('.platform-btn').forEach(btn => {
+        btn.addEventListener('click', async function () {
+            document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            selectedPlatform = this.dataset.platform;
+            
+            const u = document.getElementById('loginUsername').value.trim();
+            const p = document.getElementById('loginPassword').value.trim();
+            if (!u || !p) {
+                document.getElementById('loginStatus').innerText = '⚠️ Username/Password ထည့်ပါ။';
+                return;
+            }
+            await performLogin(u, p);
+        });
+    });
+    window.addEventListener('load', () => {
+        canvas = document.getElementById('candleChart');
+        isVerticalView = true;
+        const dashboard = document.getElementById('mainDashboard');
+        dashboard.classList.add('rotated');
+        document.body.classList.add('rotated-view');
+        dashboard.style.position = 'fixed';
+        dashboard.style.top = '0';
+        dashboard.style.left = '0';
+        dashboard.style.width = window.innerHeight + 'px';
+        dashboard.style.height = window.innerWidth + 'px';
+        dashboard.style.transform = 'rotate(90deg) translateY(-100%)';
+        dashboard.style.transformOrigin = 'top left';
+        
+        resizeCanvasAndDraw();
+        window.addEventListener('resize', () => { 
+            resizeCanvasAndDraw(); 
+            scrollToNewest(); 
+        });
+        setupInteractions();
+        document.querySelector('.amount-btn').classList.add('selected');
+        document.getElementById('multValueInput').value = '';
+        document.querySelectorAll('.mult-preset').forEach(p => p.classList.remove('active'));
+        document.getElementById('totalBetDisplay').innerText = '0 ကျပ်';
+    });
+</script>
+</body>
+</html>
