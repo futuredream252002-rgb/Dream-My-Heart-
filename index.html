@@ -109,104 +109,17 @@
             gap: 16px; 
             align-items: baseline;
             background: #0a0a0a; 
-            padding: 3px 12px; 
+            padding: 5px 16px; 
             border-radius: 40px;
             border: 1px solid #222;
         }
         .period-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
-        .period-item-label { font-size: 0.5rem; color: #777; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
-        .period-item-value { font-size: 0.85rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; }
-        .timer-value { font-size: 1rem; font-weight: 900; color: #00e676; font-family: 'Courier New', monospace; letter-spacing: 1px; }
+        .period-item-label { font-size: 0.55rem; color: #777; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+        .period-item-value { font-size: 0.9rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; }
+        .timer-value { font-size: 1.1rem; font-weight: 900; color: #00e676; font-family: 'Courier New', monospace; letter-spacing: 1px; }
         .timer-value.warning { color: #ffea00; }
         .timer-value.danger { color: #ff1744; animation: pulse 0.6s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        
-        /* ===== PREDICTION CONTAINER ===== */
-        .prediction-container {
-            background: #0a0a0a; 
-            padding: 3px 10px; 
-            border-radius: 40px;
-            border: 1px solid #2a2a2a; 
-            display: flex; 
-            align-items: center;
-            gap: 8px; 
-            flex-wrap: wrap; 
-            min-height: 36px;
-            flex: 1;
-            min-width: 200px;
-        }
-        .prediction-label { 
-            color: #888; 
-            font-size: 0.55rem; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px; 
-            display: flex; 
-            align-items: center; 
-            gap: 4px;
-        }
-        .prediction-label i { color: #4fc3f7; }
-        .pattern-display { 
-            font-family: 'Courier New', monospace; 
-            font-size: 0.7rem; 
-            font-weight: 800; 
-            color: #4fc3f7; 
-            background: rgba(79,195,247,0.1); 
-            padding: 1px 8px; 
-            border-radius: 12px; 
-            border: 1px solid rgba(79,195,247,0.2);
-            min-width: 35px; 
-            text-align: center;
-        }
-        .prediction-badge { 
-            display: flex; 
-            align-items: center; 
-            gap: 4px; 
-            padding: 1px 6px; 
-            border-radius: 20px; 
-            background: rgba(255,255,255,0.03);
-        }
-        .prediction-result { 
-            font-weight: 800; 
-            font-size: 0.65rem; 
-            padding: 1px 6px; 
-            border-radius: 12px; 
-            min-width: 30px; 
-            text-align: center;
-        }
-        .prediction-result.big { color: #00e676; background: rgba(0,230,118,0.15); border: 1px solid rgba(0,230,118,0.3); }
-        .prediction-result.small { color: #ff1744; background: rgba(255,23,68,0.15); border: 1px solid rgba(255,23,68,0.3); }
-        .prediction-result.neutral { color: #ffb300; background: rgba(255,179,0,0.15); border: 1px solid rgba(255,179,0,0.3); }
-        .prediction-confidence { 
-            font-family: 'Courier New', monospace; 
-            font-size: 0.65rem; 
-            font-weight: 700; 
-            color: #ffd700; 
-            min-width: 30px;
-        }
-        .match-details { 
-            display: flex; 
-            align-items: center; 
-            gap: 4px; 
-            font-size: 0.55rem; 
-            color: #888;
-        }
-        .match-count { 
-            background: rgba(255,255,255,0.05); 
-            padding: 1px 6px; 
-            border-radius: 10px; 
-            font-size: 0.6rem;
-        }
-        .matched-pattern-display { 
-            font-family: 'Courier New', monospace; 
-            color: #ffd700; 
-            font-weight: 700; 
-            font-size: 0.6rem;
-            background: rgba(255,215,0,0.05); 
-            padding: 1px 6px;
-            border-radius: 8px; 
-            border: 1px solid rgba(255,215,0,0.1);
-        }
         
         .live-indicator {
             display: flex; 
@@ -236,61 +149,64 @@
         }
         .focus-card {
             background: #141414;
-            border: 1px solid #2a2a2a;
+            border: 2px solid #2a2a2a;
             border-radius: 28px;
-            padding: 24px 28px;
+            padding: 32px 24px;
             max-width: 400px;
             width: 100%;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            box-shadow: 0 15px 45px rgba(0,0,0,0.7);
         }
         .focus-card .big-icon {
-            font-size: 2.8rem;
-            margin-bottom: 8px;
+            font-size: 3.2rem;
+            margin-bottom: 4px;
             color: #4fc3f7;
         }
         .focus-card .focus-title {
-            font-size: 0.9rem;
-            color: #aaa;
-            letter-spacing: 1px;
-            font-weight: 600;
+            font-size: 0.8rem;
+            color: #777;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+            text-transform: uppercase;
         }
         .focus-card .focus-prediction {
-            font-size: 2rem;
+            font-size: 3.4rem;
             font-weight: 900;
-            margin: 10px 0 6px;
+            margin: 14px 0;
+            letter-spacing: 1px;
+            text-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
-        .focus-card .focus-prediction.big { color: #00e676; }
-        .focus-card .focus-prediction.small { color: #ff1744; }
+        .focus-card .focus-prediction.big { color: #00e676; text-shadow: 0 0 15px rgba(0,230,118,0.2); }
+        .focus-card .focus-prediction.small { color: #ff1744; text-shadow: 0 0 15px rgba(255,23,68,0.2); }
         .focus-card .focus-prediction.neutral { color: #ffb300; }
-        .focus-card .focus-confidence {
-            font-size: 0.9rem;
+        
+        .focus-card .focus-stars {
+            font-size: 1.8rem;
+            margin: 10px 0;
+            letter-spacing: 4px;
             color: #ffd700;
-            font-weight: 700;
         }
-        .focus-card .focus-pattern {
+        .focus-card .focus-confidence {
+            font-size: 1.1rem;
+            color: #ffd700;
+            font-weight: 800;
             font-family: 'Courier New', monospace;
-            background: #1a1a1a;
-            padding: 6px 14px;
-            border-radius: 40px;
-            border: 1px solid #333;
+            background: rgba(255,215,0,0.05);
+            padding: 4px 14px;
+            border-radius: 20px;
             display: inline-block;
-            margin: 6px 0;
-            color: #4fc3f7;
-            font-weight: 700;
-            letter-spacing: 2px;
-            font-size: 0.9rem;
         }
         .focus-card .focus-detail {
-            font-size: 0.7rem;
-            color: #888;
-            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 16px;
             border-top: 1px solid #222;
-            padding-top: 10px;
+            padding-top: 12px;
         }
         .focus-card .focus-detail span {
-            color: #fff;
-            font-weight: 600;
+            color: #4fc3f7;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
         }
 
         .betting-panel {
@@ -572,7 +488,6 @@
         }
         #resultPopup .close-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
 
-        /* Remove rotation styles */
         .dashboard:not(.rotated) {
             position: relative !important;
             width: 100% !important;
@@ -591,20 +506,13 @@
             .period-group { gap: 10px; padding: 2px 10px; }
             .period-item-value { font-size: 0.75rem; }
             .timer-value { font-size: 0.9rem; }
-            .prediction-container { padding: 2px 8px; gap: 4px; min-height: 32px; }
-            .prediction-label { font-size: 0.5rem; }
-            .pattern-display { font-size: 0.6rem; padding: 1px 6px; min-width: 30px; }
-            .prediction-result { font-size: 0.55rem; padding: 1px 4px; min-width: 26px; }
-            .prediction-confidence { font-size: 0.55rem; min-width: 26px; }
-            .match-details { font-size: 0.5rem; gap: 3px; }
-            .match-count { font-size: 0.5rem; padding: 1px 4px; }
-            .matched-pattern-display { font-size: 0.5rem; padding: 1px 4px; }
             .live-indicator { padding: 2px 8px; font-size: 0.5rem; }
             .betting-panel { padding: 8px 12px; }
             .bet-btn { padding: 10px 8px; font-size: 0.85rem; }
-            .focus-card { padding: 18px 16px; }
-            .focus-card .focus-prediction { font-size: 1.6rem; }
-            .focus-card .focus-pattern { font-size: 0.75rem; padding: 4px 10px; }
+            .focus-card { padding: 24px 16px; }
+            .focus-card .focus-prediction { font-size: 2.8rem; margin: 10px 0; }
+            .focus-card .focus-stars { font-size: 1.5rem; }
+            .focus-card .focus-confidence { font-size: 0.95rem; padding: 3px 10px; }
             .bet-modal { padding: 14px; }
             .quick-amounts { grid-template-columns: repeat(4, 1fr); gap: 6px; }
             .amount-btn { font-size: 0.7rem; padding: 8px 4px; }
@@ -693,7 +601,7 @@
             <button class="platform-btn" data-platform="CKLOTTERY">💙 CK LOTTERY</button>
         </div>
         <label>👤 Username (Phone)</label>
-        <input type="text" id="loginUsername" placeholder="Enter your phone number">
+        <input type="text" id="loginUsername" value="+95" placeholder="Enter your phone number">
         <label>🔑 Password</label>
         <input type="password" id="loginPassword" placeholder="Enter your password">
         <div id="loginStatus" class="login-status"></div>
@@ -773,7 +681,6 @@
             </div>
         </div>
 
-        <!-- ===== INFO BAR WITH PREDICTION ===== -->
         <div class="info-bar" id="infoBarZone">
             <div class="period-group">
                 <div class="period-item">
@@ -786,35 +693,25 @@
                 </div>
             </div>
             
-            <div class="prediction-container" id="predictionContainer">
-                <span class="prediction-label"><i class="fa-solid fa-brain"></i> PATTERN</span>
-                <span class="pattern-display" id="patternDisplay">--</span>
-                <div class="prediction-badge">
-                    <span class="prediction-result neutral" id="predictionResult">--</span>
-                    <span class="prediction-confidence" id="predictionConfidence">0%</span>
-                </div>
-                <div class="match-details">
-                    <span class="match-count" id="matchCountDisplay">☆☆☆☆☆</span>
-                    <span class="matched-pattern-display" id="matchedPatternDisplay">--</span>
-                </div>
-            </div>
-            
             <div class="live-indicator">
                 <div class="live-dot"></div>
                 <span id="lastUpdateTime">--:--:--</span>
             </div>
         </div>
 
-        <!-- PREDICTION FOCUS -->
         <div class="prediction-focus" id="predictionFocus">
             <div class="focus-card">
                 <div class="big-icon"><i class="fa-solid fa-robot"></i></div>
-                <div class="focus-title">PATTERN PREDICTION ENGINE</div>
+                <div class="focus-title">CURRENT PATTERN ANALYSIS</div>
+                
                 <div id="focusPrediction" class="focus-prediction neutral">--</div>
-                <div id="focusConfidence" class="focus-confidence">--</div>
-                <div id="focusPattern" class="focus-pattern">--</div>
+                
+                <div id="focusStars" class="focus-stars">☆☆☆☆☆</div>
+                
+                <div id="focusConfidence" class="focus-confidence">0%</div>
+                
                 <div class="focus-detail">
-                    Matched: <span id="focusMatchCount">--</span> &nbsp;|&nbsp; Pattern: <span id="focusMatchedPattern">--</span>
+                    Last 5 Patterns: <span id="focusPattern">--</span>
                 </div>
             </div>
         </div>
@@ -939,28 +836,23 @@
 
             let confidence = 0;
             let confidenceLabel = '';
-            let starRating = '';
             
             switch(match.matchCount) {
                 case 5:
                     confidence = 0.95;
                     confidenceLabel = '95%';
-                    starRating = '⭐⭐⭐⭐⭐';
                     break;
                 case 4:
                     confidence = 0.80;
                     confidenceLabel = '80%';
-                    starRating = '⭐⭐⭐⭐☆';
                     break;
                 case 3:
                     confidence = 0.65;
                     confidenceLabel = '65%';
-                    starRating = '⭐⭐⭐☆☆';
                     break;
                 default:
                     confidence = 0.50;
                     confidenceLabel = '50%';
-                    starRating = '⭐⭐☆☆☆';
             }
 
             const matchedStr = match.matchedPattern.join('');
@@ -969,30 +861,13 @@
                 prediction: match.result,
                 confidence: confidence,
                 confidenceLabel: confidenceLabel,
-                starRating: starRating,
                 matchCount: match.matchCount,
                 nextNumber: match.nextNumber,
                 pattern: lastFive.join(''),
                 matchedPattern: matchedStr,
                 fullPattern: match.fullPattern.join(''),
-                matchedPosition: match.position,
-                explanation: this.generateExplanation(lastFive, match)
+                matchedPosition: match.position
             };
-        }
-
-        generateExplanation(targetPattern, match) {
-            const targetStr = targetPattern.join('');
-            const matchedStr = match.matchedPattern.join('');
-            const nextNum = match.nextNumber;
-            
-            if (match.matchCount === 5) {
-                return `${targetStr} အတိအကျတူညီပါတယ်။ နောက်ထွက်မည့်ဂဏန်းက ${nextNum} ဖြစ်ပါတယ်။`;
-            } else if (match.matchCount === 4) {
-                return `${targetStr} ထဲက ${matchedStr} ဆိုတဲ့ 4 လုံးတူညီပါတယ်။ နောက်ထွက်မည့်ဂဏန်းက ${nextNum} ဖြစ်ပါတယ်။`;
-            } else if (match.matchCount === 3) {
-                return `${targetStr} ထဲက ${matchedStr} ဆိုတဲ့ 3 လုံးတူညီပါတယ်။ နောက်ထွက်မည့်ဂဏန်းက ${nextNum} ဖြစ်ပါတယ်။`;
-            }
-            return '';
         }
     }
 
@@ -1337,33 +1212,19 @@
         if (remain <= 500) fetchTRXData();
     }
 
-    // ===== PATTERN PREDICTION =====
+    // ===== PATTERN PREDICTION UPDATE =====
     function updatePatternPrediction() {
-        const patternDisplay = document.getElementById('patternDisplay');
-        const predictionResult = document.getElementById('predictionResult');
-        const predictionConfidence = document.getElementById('predictionConfidence');
-        const matchCountDisplay = document.getElementById('matchCountDisplay');
-        const matchedPatternDisplay = document.getElementById('matchedPatternDisplay');
-
         const focusPrediction = document.getElementById('focusPrediction');
+        const focusStars = document.getElementById('focusStars');
         const focusConfidence = document.getElementById('focusConfidence');
         const focusPattern = document.getElementById('focusPattern');
-        const focusMatchCount = document.getElementById('focusMatchCount');
-        const focusMatchedPattern = document.getElementById('focusMatchedPattern');
 
         if (!candleData || candleData.length < 5) {
-            patternDisplay.textContent = '--';
-            predictionResult.textContent = '--';
-            predictionResult.className = 'prediction-result neutral';
-            predictionConfidence.textContent = '0%';
-            matchCountDisplay.textContent = '☆☆☆☆☆';
-            matchedPatternDisplay.textContent = '--';
             focusPrediction.textContent = '--';
             focusPrediction.className = 'focus-prediction neutral';
+            focusStars.textContent = '☆☆☆☆☆';
             focusConfidence.textContent = '0%';
             focusPattern.textContent = '--';
-            focusMatchCount.textContent = '--';
-            focusMatchedPattern.textContent = '--';
             return;
         }
 
@@ -1371,36 +1232,24 @@
             const engine = new PatternMatchEngine(candleData);
             const result = engine.getPrediction();
 
-            patternDisplay.textContent = result.pattern || '--';
             focusPattern.textContent = result.pattern || '--';
 
             if (result.prediction === 'BIG') {
-                predictionResult.textContent = '⬆️ BIG';
-                predictionResult.className = 'prediction-result big';
-                predictionConfidence.style.color = '#00e676';
-                focusPrediction.textContent = '⬆️ BIG';
+                focusPrediction.textContent = 'BIG';
                 focusPrediction.className = 'focus-prediction big';
             } else if (result.prediction === 'SMALL') {
-                predictionResult.textContent = '⬇️ SMALL';
-                predictionResult.className = 'prediction-result small';
-                predictionConfidence.style.color = '#ff1744';
-                focusPrediction.textContent = '⬇️ SMALL';
+                focusPrediction.textContent = 'SMALL';
                 focusPrediction.className = 'focus-prediction small';
             } else {
-                predictionResult.textContent = '⚖️ NEUTRAL';
-                predictionResult.className = 'prediction-result neutral';
-                predictionConfidence.style.color = '#ffb300';
-                focusPrediction.textContent = '⚖️ NEUTRAL';
+                focusPrediction.textContent = 'NEUTRAL';
                 focusPrediction.className = 'focus-prediction neutral';
             }
-            predictionConfidence.textContent = result.confidenceLabel || '0%';
+            
             focusConfidence.textContent = `Confidence: ${result.confidenceLabel || '0%'}`;
-
-            const stars = '⭐'.repeat(result.matchCount || 0) + '☆'.repeat(5 - (result.matchCount || 0));
-            matchCountDisplay.textContent = stars;
-            matchedPatternDisplay.textContent = result.matchedPattern || '--';
-            focusMatchCount.textContent = `${result.matchCount || 0}/5`;
-            focusMatchedPattern.textContent = result.matchedPattern || '--';
+            
+            // Render Stars Display dynamically
+            const matchCount = result.matchCount || 0;
+            focusStars.textContent = '⭐'.repeat(matchCount) + '☆'.repeat(5 - matchCount);
 
         } catch (e) {
             console.warn('Prediction update error:', e);
@@ -1712,7 +1561,7 @@
             
             const u = document.getElementById('loginUsername').value.trim();
             const p = document.getElementById('loginPassword').value.trim();
-            if (!u || !p) {
+            if (!u || !p || u === "+95") {
                 document.getElementById('loginStatus').innerText = '⚠️ Username/Password ထည့်ပါ။';
                 return;
             }
@@ -1722,7 +1571,6 @@
 
     // ===== INIT =====
     window.addEventListener('load', () => {
-        // No rotation - normal phone layout
         const dashboard = document.getElementById('mainDashboard');
         dashboard.classList.remove('rotated');
         
@@ -1736,7 +1584,7 @@
             updatePatternPrediction();
         }, 1000);
         
-        console.log('✅ TRX PREDICTOR ENGINE LOADED (No Rotation)');
+        console.log('✅ TRX PREDICTOR ENGINE LOADED (Clean Focus View)');
     });
 </script>
 </body>
